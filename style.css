@@ -1,0 +1,29 @@
+.header {
+  height:100px;
+  display: flex;
+  position: relative;
+  top: 0px;
+}
+
+.Searchbars {
+  display: inline-block;
+  width: 33%
+}
+
+ul > li {
+  display: inline-block;
+  zoom: 1;
+  z-index: 2;
+}
+
+.collapsible-body {
+  background-color: white;
+}
+
+
+#mapid { 
+    height: 500px; 
+    z-index: -1;
+    /* position: absolute; 
+    bottom:0; right:0; left:0; */
+}

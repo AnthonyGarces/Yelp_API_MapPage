@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+
+    <!-- this is Leaflet's CSS file -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
+        integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+        crossorigin="" />
+    <!-- Make sure this is ALWAYS AFTER Leaflet's CSS -->
+    <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"
+        integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og=="
+        crossorigin=""></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Have to request a 'mapbox token to use this for leaflet' -->
+    <!-- UN: jyonge -->
+    <!-- PW: christian1! -->
+    <!-- Token: "pk.eyJ1IjoianlvbmdlIiwiYSI6ImNrMzFzOTJhOTAzczUzbG9iNzJkbThqNGgifQ.P8qxxnXrweFPSDAk0myObw" -->
+</head>
+
+<body>
+    <div class="header teal accent-3 col s12">
+        <h1 class="white-text center-align">munchi</h1>
+    </div>
+
+    <div class="row">
+        <div class="SearchCriteria">
+            <form>
+                <div id="StarterSearch">
+                    <div class="input-field Searchbars">
+                        <label for="Food_Search">What do you feel like eating?</label>
+                        <input type="text" id="FoodSearch">
+                    </div>
+                    <div class="input-field Searchbars">
+                        <label for="Location">Whereabouts do you want to eat?</label>
+                        <input type="text" id="Location">
+                    </div>
+                    <input type="submit" id="SearchBtn">
+                <hr>
+                <!-- Just some basic html for the filters, needs to be changed later to actual filters -->
+                <ul id="Search Filters" class="collapsible">
+                    <li style="display: inline">
+                        <div style="display: inline-block" class="collapsible-header">Price</div>
+                        <div style="display: none; position:absolute;" class="collapsible-body">
+                            <span>
+                                    How much are you willing to spend?
+                                    <br>
+                                    <a class="waves-effect waves-light btn">$</a>
+                                    <a class="waves-effect waves-light btn">$$</a>
+                                    <a class="waves-effect waves-light btn">$$$</a>
+                                    <a class="waves-effect waves-light btn">$$$$</a>
+                            </span>
+                        </div>
+                    </li>
+                    <li style="display: inline">
+                        <div class="collapsible-header" style="display:inline-block">Availability</div>
+                        <div class="collapsible-body" style="display: none; position: absolute;">
+                            <span>
+                                <div id="Filter2Addon">
+                                    When are you going?
+                                    <br>
+                                    <button id="EatNowBtn">Now</button>
+                                    <br>
+                                    Later:   <input type="text" class="timepicker">
+                                    <br>
+                                    <button id="All-dayEats">24 Hour Eats</button>
+                                </div>
+                            </span>
+                        </div>
+                    </li>
+                    <li style="display: inline">
+                        <div class="collapsible-header" style="display:inline-block">Other</div>
+                        <div class="collapsible-body" style="display: none; position: absolute;">
+                            <span>
+                                <div id="Filter3Addon">
+                                    3rd filter option goes here
+                                    fill out when we get a clearer image of filter options
+                                </div>
+                            </span>
+                        </div>
+                    </li>
+                    <li style="display: inline">
+                        <div class="collapsible-header" style="display:inline-block">The rest of the filters</div>
+                        <div class="collapsible-body" style="display: none; position: absolute;">
+                            <span>
+                                <div id="AllFilterOptions">
+                                    Put the rest of the filters
+                                </div>
+                            </span>
+                        </div>
+                    </li>
+                </ul>
+            </form>
+        </div>
+        <div class="map-section">
+            <div id="mapid">
+            </div>
+        </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script type="text/javascript" src="logic.js"></script>
+    <script>
+
+        // Yelp API request 
+        // TODO We should really figure out how to extract and store these keys instead of having to commit them 
+
+        //when done with styling un comment out the lines below
+
+        const token = 'Bearer ERyByTkumJyy5HXbiMBTukTvSxjGzdWa6mo9HtSNsxWXK_bvwvbGeSMCfNWObo18bChYAF_p4-UpQvr1ye20KqWLiFdgRTVJ9bqWSlBOU6p8U4Yo-286thb_vGbQXXYx';
+        const cors_url = 'https://cors-anywhere.herokuapp.com';
+        const yelp_search_url = 'https://api.yelp.com/v3/businesses/search';
+        let searchTerm = 'restaurants';
+        let searchLocation = '78722';
+
+        //This allows our collapsible filters to work
+        $(document).ready(function(){
+            $('.collapsible').collapsible();
+        })
+
+        $.ajax({
+            url: cors_url + '/' + yelp_search_url,
+            data: {term: searchTerm, location: searchLocation},
+            headers: {'Authorization': token},
+            method: 'GET'
+        }).then(function(response) {
+            // console.log(response);
+        })
+
+        $(document).ready(function(){
+            $('.timepicker').timepicker();
+        });
+
+    </script>
+</body>
+
+</html>
